@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+
+
+
+function log() {
+    printf "%b\\n" "${*}" >&2
+}
+
+function avoid_starting() {
+    local -r avoid="${1:?No avoid string provided to ensure_starting}"
+    local -r content="${2:-}"
+
+    echo "${content#"$avoid"}"
+
+    return 0
+}
+
+function avoid_trailing() {
+    local -r avoid="${1:?No avoid string provided to ensure_starting}"
+    local -r content="${2:-}"
+
+    echo "${content%"$avoid"}"
+
+    return 0
+}
+
+
+function replace() {
+    local -r CONTENT="${1:?no content sent into replace fn}"
+    local -r FIND="${1:?no FIND string passed to replace fn}"
+    local -r REPLACE="${2:?no replacement text passed to replace fn}"
+
+    echo "$CONTENT//""${FIND}""/""${REPLACE}""}"
+}
+
+function fix() {
+    local -r FILE="${1:?fix requires a file to be passed to it!}"
+    local -r FN=$(avoid_trailing ".js" "$(avoid_starting "./dist/" "$FILE")")
+    local -r CONTENT="$(cat "${FILE}")"
+    local -r FIND="(module.exports =)"
+    local -r DONE=".*ESM import.*"
+    local FOUND="false"
+
+    log "- fixing file ""${FILE}"" so that ${FN}() function is the sole CJS export."
+
+    exec 4<"${FILE}"
+    # echo Start
+    while read -r -u4 line || [[ -n $line ]];
+    do
+        if [[ "${line}" =~ $FIND && "${FOUND}" == "false" ]]; then
+            echo "module.exports = ${FN};"
+            # log "found"
+        else
+            if [[ "${line}" =~ $DONE ]]; then
+                FOUND="true"
+                # log "done: ${line}"
+            fi
+            if [[ "${FOUND}" == "false" ]]; then
+                echo "${line}"
+            fi
+        fi
+    done < "${FILE}"
+}
+
+
+log "Transpiling TS to JS (using TSUP)"
+log "---------------------------------"
+
+declare -ra ts_files=( $(ls *.ts) )
+tsup_files=""
+targets=""
+for f in "${ts_files[@]}"; do
+    entry=$(avoid_trailing ".ts" "$f")
+    targets="${targets}, $(avoid_trailing ".ts" "$f")"
+    tsup_files="${tsup_files} --entry.${entry} ./${entry}.ts"
+done
+
+targets="$(avoid_starting ", " "$targets")"
+
+log "Typescript Targets[${#ts_files[@]}]: ${targets}"
+log "";
+PARAMS=""${tsup_files}" --clean --keep-names --format cjs"
+
+eval "tsup ${PARAMS}"
+
+declare -ra js_files=( $(find . -type f -path './dist/*.js') )
+log "" 
+log "Fixing CJS exports [ ${#js_files[@]} ]"
+log "-------------------------"
+
+for f in "${js_files[@]}"; do
+    result=$(fix "${f}")
+    echo "${result}" > "${f}"
+done
+log ""
+
+exa -l --git ./dist
+
+
