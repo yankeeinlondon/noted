@@ -1,4 +1,4 @@
-import { Templater } from "./types";
+import { Templater } from "./Templater";
 
 
 export const wikipedia = (tp: Templater) => tp.frontmatter.wikipedia 
@@ -52,3 +52,6 @@ export const keep_if_set = async <C extends [string[],string[]]>(
         : await tp.system.prompt(ask);
 
     
+export function capitalize<T extends string>(str: T): Capitalize<T> {
+    return `${str?.slice(0,1).toUpperCase()}${str?.slice(1)}` as Capitalize<T>;
+    }

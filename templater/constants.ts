@@ -1,3 +1,5 @@
+import { TupleToUnion } from "./TupleToUnion";
+
 export const CALLOUT_TYPES = [
   "info", 
   "tip", 
@@ -9,3 +11,13 @@ export const CALLOUT_TYPES = [
   "abstract", 
   "question"
 ] as const;
+
+export const VALID_CATEGORY_TAGS = [
+  "#software", "#hardware", "#business", "#service", "#retail", "#brand", "#framework", "#standard"
+] as const;
+
+/**
+ * A union type which includes all tags that can be
+ * categorized or sub-categorized.
+ */
+export type ValidCategoryTag = TupleToUnion<typeof VALID_CATEGORY_TAGS>;

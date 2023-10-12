@@ -1,24 +1,24 @@
 // https://github.dev/SilentVoid13/Templater
-import { TFile, TFolder } from "./obsidian-types";
+import { TemplateFile, TFolder } from "./obsidian-types";
 import { CALLOUT_TYPES } from "./constants";
+import  { Vault, App, FileManager } from  "obsidian";
 
 export type CalloutType = keyof typeof CALLOUT_TYPES;
+
+export abstract class ObsidianApi {
+  __kind: "ObsidianApi";
+  public vault: App["vault"];
+  public fileManager: App["fileManager"];
+
+};
 
 export interface Obsidian {
   dom: {
       appContainerEl: HTMLElement;
   };
 
-  Vault: {
-      getConfig: (key: string) => string;
-      exists: (path: string) => Promise<boolean>;
-  };
-  FileManager: {
-      createNewMarkdownFile: (
-          folder: TFolder | undefined,
-          filename: string
-      ) => Promise<TFile>;
-  }
+  Vault: Vault;
+  FileManager: FileManager
   DataAdapter: {
       basePath: string;
       fs: {
@@ -51,22 +51,22 @@ export interface TemplaterFile {
   /**
    * Creates a new file in the current vault
    */
-  create_new(file: TFile | string, filename?: string, open_new?: boolean, folder?: TFolder): Promise<void>;
+  create_new: (file: TemplateFile | string, filename?: string, open_new?: boolean, folder?: TFolder)=> Promise<unknown>;
 
   /**
    * Returns the file's creation date
    */
-  creation_date<F extends string>(format?: string): Promise<undefined extends F ? DefaultDateFormat : string>;
+  creation_date:<F extends string>(format?: string)=> Promise<undefined extends F ? DefaultDateFormat : string>;
 
   /**
    * Places the cursor to this spot after templated is inserted
    */
-  cursor(order?: number): Promise<void>;
+  cursor:(order?: number)=> Promise<void>;
 
   /**
    * Appends text after the cursor in the active file
    */
-  cursor_append(content: string): Promise<void>;
+  cursor_append: (content: string)=> Promise<void>;
 
   /**
    * Tests the existence of a filename. 
@@ -74,70 +74,70 @@ export interface TemplaterFile {
    * Note: must be a fully qualified file path from the root of the vault but does
    * not includes the trailing `.md` file extension.
    */
-  exists(file: string): boolean;
+  exists: (file: string)=> boolean;
 
   /**
    * Search for a file and return the file's `TFile` if found.
    */
-  find_tfile(file: string): Promise<TFile | null>;
+  find_tfile: (file: string)=> Promise<TemplateFile | null>;
 
   /**
    * returns the folder _name_ (absolute path by default)
    */
-  folder(relative?: boolean): Promise<string>;
+  folder: (relative?: boolean) => Promise<string>;
 
   /**
    * Include the file's link content; templates in the included content will be resolved.
    */
-  include(file: string | TFile): Promise<string>;
+  include: (file: string | TemplateFile) => Promise<string>;
 
-  last_modified_date<F extends string>(format?: F): Promise<undefined extends F ? DefaultDateFormat : string>;
+  last_modified_date: <F extends string>(format?: F) => Promise<undefined extends F ? DefaultDateFormat : string>;
 
   functions: {
-    move(new_path: string, file?: TFile): Promise<void>;
+    move: (new_path: string, file?: TemplateFile)=> Promise<void>;
   }
 
   /**
    * returns the file's active selection
    */
-  selection(): Promise<string>;
+  selection: ()=> Promise<string>;
 
-  path(): Promise<any>;
+  path: ()=> Promise<any>;
   /**
    * renames the file
    */
-  rename(new_title: string): Promise<void>;
+  rename: (new_title: string)=> Promise<void>;
   /**
    * retrieves the file's tags
    */
-  tags(): Promise<string[]>;
+  tags: string[];
 
   /** retrieves the file's title */
-  title(): Promise<string>;
+  title: () =>  Promise<string>;
 }
 
 export interface TemplaterDate {
   /**
    * retrieves the date for **today**; by default uses YYYY-MM-DD format.
    */
-  now<T extends Record<string, unknown | undefined>>(
+  now: <T extends Record<string, unknown | undefined>>(
     format?: T, offset?: number | string, reference?: string, ref_format?: string
-  ): Promise<string>;
+  )=> Promise<string>;
   /**
    * retrieves the date for **tomorrow**; by default uses YYYY-MM-DD format.
    */
-  tomorrow<T extends Record<string, unknown | undefined>>(format?: T): Promise<string>;
+  tomorrow: <T extends Record<string, unknown | undefined>>(format?: T)=> Promise<string>;
   /**
    * retrieves the date for **yesterday**; by default uses YYYY-MM-DD format.
    */
-  yesterday<T extends Record<string, unknown | undefined>>(format?: T): Promise<string>;
+  yesterday: <T extends Record<string, unknown | undefined>>(format?: T) =>Promise<string>;
 
-  weekday<T extends Record<string, unknown | undefined>>(
+  weekday: <T extends Record<string, unknown | undefined>>(
     format?: T,
     weekday?: number,
     reference?: string,
     reference_format?: string
-  ): Promise<string>;
+  )=> Promise<string>;
 }
 
 export type RunMode = 
@@ -146,9 +146,9 @@ export type RunMode =
 
 export interface TemplaterConfig {
   /** the Obsidian `TFile` representing the _template_ file */
-  template_file: TFile;
+  template_file: TemplateFile;
   /** the Obsidian `TFile` representing the _target_ file where the template will be inserted */
-  target_file: TFile;
+  target_file: TemplateFile;
   /**
    * the `RunMode`, representing how **Templater** was launched.
    * 
@@ -158,28 +158,28 @@ export interface TemplaterConfig {
    */
   run_mode: RunMode;
   /** The active file -- if existing -- when launching **Templater**  */
-  active_file?: TFile;
+  active_file?: TemplateFile;
 }
 
 export interface TemplaterSystem {
   /** returns the clipboard's content */
-  clipboard(): Promise<string>;
+  clipboard:() => Promise<string>;
 
   /**
    * Prompts user for a text input
    */
-  prompt(prompt_text: string, default_value?: string, throw_on_cancel?: boolean, multiline?: boolean): any;
+  prompt: (prompt_text: string, default_value?: string, throw_on_cancel?: boolean, multiline?: boolean) => any;
 
   /** 
    * Prompts user with a list of options.
    */
-  suggester<T extends string | (<R>(result: R) => string)>(
+  suggester: <T extends string | (<R>(result: R) => string)>(
     options: readonly string[], 
     results: readonly T[], 
     throw_or_cancel?: boolean, 
     placeholder?: string, 
     limit?: number 
-  ): Promise<T>;
+  ) => Promise<T>;
 
 }
 

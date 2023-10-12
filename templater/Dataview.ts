@@ -1,5 +1,5 @@
-import { TFile } from "./obsidian-types";
-import { Frontmatter } from "./types";
+import { TemplateFile } from "./obsidian-types";
+import { Frontmatter } from "./Templater";
 
 /**
  * **DvPage**
@@ -27,14 +27,14 @@ export interface CodeBlockApi {
   /**
    * Query for a list of pages
    */
-  pages(query: string): TFile[];
+  pages(query: string): TemplateFile[];
 
   /**
    * Query for a singular page
    */
-  page(query: string  | TFile): TFile | undefined;
+  page(query: string  | TemplateFile): TemplateFile | undefined;
 
-  pagePaths(query: string | TFile | TFile[]): string[];
+  pagePaths(query: string | TemplateFile | TemplateFile[]): string[];
 
   // render
 

@@ -1,5 +1,9 @@
 {
 	"devDependencies": {
+		"obsidian": "^1.4.11",
 		"tsup": "^7.2.0"
+	},
+	"dependencies": {
+		"ezno": "^0.0.14"
 	}
 }

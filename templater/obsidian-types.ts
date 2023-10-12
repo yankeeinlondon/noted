@@ -24,20 +24,30 @@ export interface FileStats {
 /**
  * @public
  */
-export class TFile {
-  /**
-   * @public
-   */
+export class TemplateFile {
   stat: FileStats;
+
   /**
-   * @public
+   * Filename without extension
    */
   basename: string;
   /**
-   * @public
+   * the file's extension; often "md"
    */
   extension: string;
 
+  name?: string;
+
+  parent?: TemplateFile;
+
+  /**
+   * the full path to the file including the filename
+   */
+  path: string;
+
+  vault?: unknown;
+  saving?: boolean;
+  deleted: boolean;
 }
 
 /**
@@ -303,7 +313,7 @@ export interface Vault extends Events {
    * @param options - (Optional)
    * @public
    */
-  create(path: string, data: string, options?: DataWriteOptions): Promise<TFile>;
+  create(path: string, data: string, options?: DataWriteOptions): Promise<TemplateFile>;
   /**
    * Create a new binary file inside the vault.
    * @param path - Vault absolute path for the new file, with extension.
@@ -312,7 +322,7 @@ export interface Vault extends Events {
    * @throws Error if file already exists
    * @public
    */
-  createBinary(path: string, data: ArrayBuffer, options?: DataWriteOptions): Promise<TFile>;
+  createBinary(path: string, data: ArrayBuffer, options?: DataWriteOptions): Promise<TemplateFile>;
   /**
    * Create a new folder inside the vault.
    * @param path - Vault absolute path for the new folder.
@@ -326,25 +336,25 @@ export interface Vault extends Events {
    * Use {@link Vault.cachedRead} otherwise for better performance.
    * @public
    */
-  read(file: TFile): Promise<string>;
+  read(file: TemplateFile): Promise<string>;
   /**
    * Read the content of a plaintext file stored inside the vault
    * Use this if you only want to display the content to the user.
    * If you want to modify the file content afterward use {@link Vault.read}
    * @public
    */
-  cachedRead(file: TFile): Promise<string>;
+  cachedRead(file: TemplateFile): Promise<string>;
   /**
    * Read the content of a binary file stored inside the vault.
    * @public
    */
-  readBinary(file: TFile): Promise<ArrayBuffer>;
+  readBinary(file: TemplateFile): Promise<ArrayBuffer>;
 
   /**
    * Returns an URI for the browser engine to use, for example to embed an image.
    * @public
    */
-  getResourcePath(file: TFile): string;
+  getResourcePath(file: TemplateFile): string;
   /**
    * Deletes the file completely.
    * @param file - The file or folder to be deleted
@@ -373,7 +383,7 @@ export interface Vault extends Events {
    * @param options - (Optional)
    * @public
    */
-  modify(file: TFile, data: string, options?: DataWriteOptions): Promise<void>;
+  modify(file: TemplateFile, data: string, options?: DataWriteOptions): Promise<void>;
   /**
    * Modify the contents of a binary file.
    * @param file - The file
@@ -381,7 +391,7 @@ export interface Vault extends Events {
    * @param options - (Optional)
    * @public
    */
-  modifyBinary(file: TFile, data: ArrayBuffer, options?: DataWriteOptions): Promise<void>;
+  modifyBinary(file: TemplateFile, data: ArrayBuffer, options?: DataWriteOptions): Promise<void>;
   /**
    * Add text to the end of a plaintext file inside the vault.
    * @param file - The file
@@ -389,7 +399,7 @@ export interface Vault extends Events {
    * @param options - (Optional)
    * @public
    */
-  append(file: TFile, data: string, options?: DataWriteOptions): Promise<void>;
+  append(file: TemplateFile, data: string, options?: DataWriteOptions): Promise<void>;
   /**
    * Atomically read, modify, and save the contents of a note.
    * @param file - the file to be read and modified.
@@ -398,14 +408,14 @@ export interface Vault extends Events {
    * @returns string - the text value of the note that was written.
    * @public
    */
-  process(file: TFile, fn: (data: string) => string, options?: DataWriteOptions): Promise<string>;
+  process(file: TemplateFile, fn: (data: string) => string, options?: DataWriteOptions): Promise<string>;
   /**
    * Create a copy of the selected file.
    * @param file - The file
    * @param newPath - Vault absolute path for the new copy.
    * @public
    */
-  copy(file: TFile, newPath: string): Promise<TFile>;
+  copy(file: TemplateFile, newPath: string): Promise<TemplateFile>;
   /**
    * Get all files and folders in the vault.
    * @public
@@ -420,12 +430,12 @@ export interface Vault extends Events {
    * Get all markdown files in the vault.
    * @public
    */
-  getMarkdownFiles(): TFile[];
+  getMarkdownFiles(): TemplateFile[];
   /**
    * Get all files in the vault.
    * @public
    */
-  getFiles(): TFile[];
+  getFiles(): TemplateFile[];
 
   /**
    * Called when a file is created.
