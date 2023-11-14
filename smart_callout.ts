@@ -81,7 +81,7 @@ export async function smart_callout(tp: Templater): Promise<string> {
         console.log("selected:", selected);
         
         // content found so we'll assume a smart wrap
-        return smart_wrap(tp, clippy);
+        return smart_wrap(tp, selected);
     } else {
         console.log("no clipboard content found");
     }

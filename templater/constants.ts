@@ -1,4 +1,5 @@
 import { TupleToUnion } from "./TupleToUnion";
+import { codeblock, dataviewjs } from "./utils";
 
 export const CALLOUT_TYPES = [
   "info", 
@@ -21,3 +22,8 @@ export const VALID_CATEGORY_TAGS = [
  * categorized or sub-categorized.
  */
 export type ValidCategoryTag = TupleToUnion<typeof VALID_CATEGORY_TAGS>;
+
+
+export const CODE = {
+  company_products: dataviewjs("company_products.js")
+}

@@ -1,32 +1,25 @@
 // https://github.dev/SilentVoid13/Templater
-import { TemplateFile, TFolder } from "./obsidian-types";
+import { DataAdapter, FileManager, TemplateFile, TFolder, Vault } from "./obsidian-types";
 import { CALLOUT_TYPES } from "./constants";
-import  { Vault, App, FileManager } from  "obsidian";
+import { TupleToUnion } from "./TupleToUnion";
 
 export type CalloutType = keyof typeof CALLOUT_TYPES;
 
-export abstract class ObsidianApi {
-  __kind: "ObsidianApi";
-  public vault: App["vault"];
-  public fileManager: App["fileManager"];
 
-};
 
-export interface Obsidian {
+export interface ObsidianApi {
   dom: {
       appContainerEl: HTMLElement;
   };
 
+  /**
+   * provides an API surface for working with Obsidian files 
+   * and folders.
+   */
   Vault: Vault;
   FileManager: FileManager
-  DataAdapter: {
-      basePath: string;
-      fs: {
-          uri: string;
-      };
-  }
+  DataAdapter: DataAdapter
 }
-
 
 
 export type Frontmatter<T extends Record<string, unknown> = {}> = Record<string, unknown> & T;
@@ -51,7 +44,7 @@ export interface TemplaterFile {
   /**
    * Creates a new file in the current vault
    */
-  create_new: (file: TemplateFile | string, filename?: string, open_new?: boolean, folder?: TFolder)=> Promise<unknown>;
+  create_new: (content: TemplateFile | string, filename?: string, open_new?: boolean, folder?: Partial<TFolder>)=> Promise<unknown>;
 
   /**
    * Returns the file's creation date
@@ -102,7 +95,7 @@ export interface TemplaterFile {
    */
   selection: ()=> Promise<string>;
 
-  path: ()=> Promise<any>;
+  path: (relative?: boolean)=> Promise<string>;
   /**
    * renames the file
    */
@@ -113,7 +106,7 @@ export interface TemplaterFile {
   tags: string[];
 
   /** retrieves the file's title */
-  title: () =>  Promise<string>;
+  title: string;
 }
 
 export interface TemplaterDate {
@@ -173,13 +166,13 @@ export interface TemplaterSystem {
   /** 
    * Prompts user with a list of options.
    */
-  suggester: <T extends string | (<R>(result: R) => string)>(
+  suggester: <T extends readonly unknown[] | (<R>(result: R) => readonly unknown[])>(
     options: readonly string[], 
-    results: readonly T[], 
+    results: T, 
     throw_or_cancel?: boolean, 
     placeholder?: string, 
     limit?: number 
-  ) => Promise<T>;
+  ) => Promise<TupleToUnion<T>>;
 
 }
 
@@ -201,7 +194,7 @@ export interface Templater<T extends Record<string, unknown | undefined> = Front
   config: TemplaterConfig;
 
   file: TemplaterFile;
-  obsidian: Obsidian
+  obsidian: ObsidianApi
   frontmatter: Frontmatter<T>;
   date: TemplaterDate;
   /**

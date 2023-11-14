@@ -1,3 +1,31 @@
+import { FileEvent, OnlyRenameEvent, Semver } from "./other-types";
+import { Url } from "./kinds";
+import type { DataviewApi } from "obsidian-dataview/lib/api/plugin-api";
+
+export type OnConfigFileChange = (...args: unknown[]) => any & {
+  cancel: (...args: unknown[]) => any;
+  run: (...args: unknown[]) => any;
+}
+
+export type ObsidianPlugin<
+  TProps extends Object = {},
+  TSettings extends Record<string, any> = Record<string, any>
+> =  {
+  app: Record<string, any>;
+  settings: TSettings;
+  manifest:{
+    id: string;
+    name: string;
+    author: string;
+    authorUrl: string;
+    description: string;
+    dir: string;
+    isDesktopOnly: boolean;
+    minAppVersion: Semver;
+    version: Semver;
+  }
+  onConfigFileChange?: OnConfigFileChange
+} & TProps;
 
 
 /**
@@ -24,7 +52,7 @@ export interface FileStats {
 /**
  * @public
  */
-export class TemplateFile {
+export interface TemplateFile  {
   stat: FileStats;
 
   /**
@@ -36,7 +64,7 @@ export class TemplateFile {
    */
   extension: string;
 
-  name?: string;
+  name: string;
 
   parent?: TemplateFile;
 
@@ -45,7 +73,7 @@ export class TemplateFile {
    */
   path: string;
 
-  vault?: unknown;
+
   saving?: boolean;
   deleted: boolean;
 }
@@ -117,7 +145,7 @@ export interface DataAdapter {
   /**
    * @public
    */
-  getName(): string;
+  getName: ()=> string;
 
   /**
    * Check if something exists at the given path.
@@ -125,29 +153,29 @@ export interface DataAdapter {
    * @param sensitive - Some file systems/operating systems are case-insensitive, set to true to force a case-sensitivity check.
    * @public
    */
-  exists(normalizedPath: string, sensitive?: boolean): Promise<boolean>;
+  exists: (normalizedPath: string, sensitive?: boolean)=> Promise<boolean>;
   /**
    * Retrieve metadata about the given file/folder.
    * @param normalizedPath - path to file/folder, use {@link normalizePath} to normalize beforehand.
    * @public
    */
-  stat(normalizedPath: string): Promise<Stat | null>;
+  stat: (normalizedPath: string)=> Promise<Stat | null>;
   /**
    * Retrieve a list of all files and folders inside the given folder, non-recursive.
    * @param normalizedPath - path to folder, use {@link normalizePath} to normalize beforehand.
    * @public
    */
-  list(normalizedPath: string): Promise<ListedFiles>;
+  list: (normalizedPath: string)=> Promise<ListedFiles>;
   /**
    * @param normalizedPath - path to file, use {@link normalizePath} to normalize beforehand.
    * @public
    */
-  read(normalizedPath: string): Promise<string>;
+  read: (normalizedPath: string) => Promise<string>;
   /**
    * @param normalizedPath - path to file, use {@link normalizePath} to normalize beforehand.
    * @public
    */
-  readBinary(normalizedPath: string): Promise<ArrayBuffer>;
+  readBinary: (normalizedPath: string) => Promise<ArrayBuffer>;
   /**
    * Write to a plaintext file.
    * If the file exists its content will be overwritten, otherwise the file will be created.
@@ -156,7 +184,7 @@ export interface DataAdapter {
    * @param options - (Optional)
    * @public
    */
-  write(normalizedPath: string, data: string, options?: DataWriteOptions): Promise<void>;
+  write: (normalizedPath: string, data: string, options?: DataWriteOptions) => Promise<void>;
   /**
    * Write to a binary file.
    * If the file exists its content will be overwritten, otherwise the file will be created.
@@ -165,7 +193,7 @@ export interface DataAdapter {
    * @param options - (Optional)
    * @public
    */
-  writeBinary(normalizedPath: string, data: ArrayBuffer, options?: DataWriteOptions): Promise<void>;
+  writeBinary: (normalizedPath: string, data: ArrayBuffer, options?: DataWriteOptions)=> Promise<void>;
   /**
    * Add text to the end of a plaintext file.
    * @param normalizedPath - path to file, use {@link normalizePath} to normalize beforehand.
@@ -173,7 +201,7 @@ export interface DataAdapter {
    * @param options - (Optional)
    * @public
    */
-  append(normalizedPath: string, data: string, options?: DataWriteOptions): Promise<void>;
+  append: (normalizedPath: string, data: string, options?: DataWriteOptions) => Promise<void>;
   /**
    * Atomically read, modify, and save the contents of a plaintext file.
    * @param normalizedPath - path to file/folder, use {@link normalizePath} to normalize beforehand.
@@ -182,46 +210,46 @@ export interface DataAdapter {
    * @returns string - the text value of the file that was written.
    * @public
    */
-  process(normalizedPath: string, fn: (data: string) => string, options?: DataWriteOptions): Promise<string>;
+  process: (normalizedPath: string, fn: (data: string) => string, options?: DataWriteOptions)=> Promise<string>;
   /**
    * Returns an URI for the browser engine to use, for example to embed an image.
    * @param normalizedPath - path to file/folder, use {@link normalizePath} to normalize beforehand.
    * @public
    */
-  getResourcePath(normalizedPath: string): string;
+  getResourcePath: (normalizedPath: string) => string;
   /**
    * Create a directory.
    * @param normalizedPath - path to use for new folder, use {@link normalizePath} to normalize beforehand.
    * @public
    */
-  mkdir(normalizedPath: string): Promise<void>;
+  mkdir: (normalizedPath: string) => Promise<void>;
   /**
    * Try moving to system trash.
    * @param normalizedPath - path to file/folder, use {@link normalizePath} to normalize beforehand.
    * @returns Returns true if succeeded. This can fail due to system trash being disabled.
    * @public
    */
-  trashSystem(normalizedPath: string): Promise<boolean>;
+  trashSystem: (normalizedPath: string) => Promise<boolean>;
   /**
    * Move to local trash.
    * Files will be moved into the `.trash` folder at the root of the vault.
    * @param normalizedPath - path to file/folder, use {@link normalizePath} to normalize beforehand.
    * @public
    */
-  trashLocal(normalizedPath: string): Promise<void>;
+  trashLocal: (normalizedPath: string)=> Promise<void>;
   /**
    * Remove a directory.
    * @param normalizedPath - path to folder, use {@link normalizePath} to normalize beforehand.
    * @param recursive - If `true`, delete folders under this folder recursively, if `false´ the folder needs to be empty.
    * @public
    */
-  rmdir(normalizedPath: string, recursive: boolean): Promise<void>;
+  rmdir: (normalizedPath: string, recursive: boolean) => Promise<void>;
   /**
    * Delete a file.
    * @param normalizedPath - path to file, use {@link normalizePath} to normalize beforehand.
    * @public
    */
-  remove(normalizedPath: string): Promise<void>;
+  remove: (normalizedPath: string) => Promise<void>;
 
   /**
    * Rename a file or folder.
@@ -229,7 +257,7 @@ export interface DataAdapter {
    * @param normalizedNewPath - new path to file/folder, use {@link normalizePath} to normalize beforehand.
    * @public
    */
-  rename(normalizedPath: string, normalizedNewPath: string): Promise<void>;
+  rename: (normalizedPath: string, normalizedNewPath: string) => Promise<void>;
   /**
    * Create a copy of a file.
    * This will fail if there is already a file at `normalizedNewPath`.
@@ -237,7 +265,7 @@ export interface DataAdapter {
    * @param normalizedNewPath - path to file, use {@link normalizePath} to normalize beforehand.
    * @public
    */
-  copy(normalizedPath: string, normalizedNewPath: string): Promise<void>;
+  copy: (normalizedPath: string, normalizedNewPath: string) => Promise<void>;
 }
 
 /**
@@ -248,25 +276,77 @@ export interface Events {
   /**
    * @public
    */
-  on(name: string, callback: (...data: any) => any, ctx?: any): EventRef;
+  on: (name: string, callback: (...data: any) => any, ctx?: any) => EventRef;
   /**
    * @public
    */
-  off(name: string, callback: (...data: any) => any): void;
+  off: (name: string, callback: (...data: any) => any) => void;
   /**
    * @public
    */
-  offref(ref: EventRef): void;
+  offref: (ref: EventRef) => void;
   /**
    * @public
    */
-  trigger(name: string, ...data: any[]): void;
+  trigger: (name: string, ...data: any[]) => void;
   /**
    * @public
    */
-  tryTrigger(evt: EventRef, args: any[]): void;
+  tryTrigger: (evt: EventRef, args: any[]) => void;
 }
 
+
+/**
+ * Manage the creation, deletion and renaming of files from the UI.
+ * @public
+ */
+export interface FileManager {
+
+  /**
+   * Gets the folder that new files should be saved to, given the user's preferences.
+   * @param sourcePath - The path to the current open/focused file,
+   * used when the user wants new files to be created "in the same folder".
+   * Use an empty string if there is no active file.
+   * @param newFilePath - The path to the file that will be newly created,
+   * used to infer what settings to use based on the path's extension.
+   * @public
+   */
+  getNewFileParent: (sourcePath: string, newFilePath?: string) => TFolder;
+
+  /**
+   * Rename or move a file safely, and update all links to it depending on the user's preferences.
+   * @param file - the file to rename
+   * @param newPath - the new path for the file
+   * @public
+   */
+  renameFile: (file: TAbstractFile, newPath: string) => Promise<void>;
+
+  /**
+   * Generate a markdown link based on the user's preferences.
+   * @param file - the file to link to.
+   * @param sourcePath - where the link is stored in, used to compute relative links.
+   * @param subpath - A subpath, starting with `#`, used for linking to headings or blocks.
+   * @param alias - The display text if it's to be different than the file name. Pass empty string to use file name.
+   * @public
+   */
+  generateMarkdownLink: (file: TFile, sourcePath: string, subpath?: string, alias?: string) => string;
+
+  /**
+   * Atomically read, modify, and save the frontmatter of a note.
+   * The frontmatter is passed in as a JS object, and should be mutated directly to achieve the desired result.
+   *
+   * Remember to handle errors thrown by this method.
+   *
+   * @param file - the file to be modified. Must be a markdown file.
+   * @param fn - a callback function which mutates the frontMatter object synchronously.
+   * @param options - write options.
+   * @throws YAMLParseError if the YAML parsing fails
+   * @throws any errors that your callback function throws
+   * @public
+   */
+  processFrontMatter: (file: TFile, fn: (frontmatter: any) => void, options?: DataWriteOptions) => Promise<void>;
+
+}
 
 /**
  * Work with files and folders stored inside a vault.
@@ -298,13 +378,13 @@ export interface Vault extends Events {
    * @returns the abstract file, if it's found.
    * @public
    */
-  getAbstractFileByPath(path: string): TAbstractFile | null;
+  getAbstractFileByPath: (path: string)=> TAbstractFile | null;
 
   /**
    * Get the root folder of the current vault.
    * @public
    */
-  getRoot(): TFolder;
+  getRoot:() => TFolder;
 
   /**
    * Create a new plaintext file inside the vault.
@@ -313,7 +393,7 @@ export interface Vault extends Events {
    * @param options - (Optional)
    * @public
    */
-  create(path: string, data: string, options?: DataWriteOptions): Promise<TemplateFile>;
+  create: (path: string, data: string, options?: DataWriteOptions) => Promise<TFile>;
   /**
    * Create a new binary file inside the vault.
    * @param path - Vault absolute path for the new file, with extension.
@@ -322,60 +402,60 @@ export interface Vault extends Events {
    * @throws Error if file already exists
    * @public
    */
-  createBinary(path: string, data: ArrayBuffer, options?: DataWriteOptions): Promise<TemplateFile>;
+  createBinary: (path: string, data: ArrayBuffer, options?: DataWriteOptions)=> Promise<TFile>;
   /**
    * Create a new folder inside the vault.
    * @param path - Vault absolute path for the new folder.
    * @throws Error if folder already exists
    * @public
    */
-  createFolder(path: string): Promise<TFolder>;
+  createFolder: (path: string)=>  Promise<TFolder>;
   /**
    * Read a plaintext file that is stored inside the vault, directly from disk.
    * Use this if you intend to modify the file content afterwards.
    * Use {@link Vault.cachedRead} otherwise for better performance.
    * @public
    */
-  read(file: TemplateFile): Promise<string>;
+  read: (file: TFile)=> Promise<string>;
   /**
    * Read the content of a plaintext file stored inside the vault
    * Use this if you only want to display the content to the user.
    * If you want to modify the file content afterward use {@link Vault.read}
    * @public
    */
-  cachedRead(file: TemplateFile): Promise<string>;
+  cachedRead: (file: TFile) => Promise<string>;
   /**
    * Read the content of a binary file stored inside the vault.
    * @public
    */
-  readBinary(file: TemplateFile): Promise<ArrayBuffer>;
+  readBinary: (file: TFile) => Promise<ArrayBuffer>;
 
   /**
    * Returns an URI for the browser engine to use, for example to embed an image.
    * @public
    */
-  getResourcePath(file: TemplateFile): string;
+  getResourcePath: (file: TFile) => string;
   /**
    * Deletes the file completely.
    * @param file - The file or folder to be deleted
    * @param force - Should attempt to delete folder even if it has hidden children
    * @public
    */
-  delete(file: TAbstractFile, force?: boolean): Promise<void>;
+  delete: (file: TAbstractFile, force?: boolean)=> Promise<void>;
   /**
    * Tries to move to system trash. If that isn't successful/allowed, use local trash
    * @param file - The file or folder to be deleted
    * @param system - Set to `false` to use local trash by default.
    * @public
    */
-  trash(file: TAbstractFile, system: boolean): Promise<void>;
+  trash: (file: TAbstractFile, system: boolean) => Promise<void>;
   /**
    * Rename or move a file.
    * @param file - the file to rename/move
    * @param newPath - vault absolute path to move file to.
    * @public
    */
-  rename(file: TAbstractFile, newPath: string): Promise<void>;
+  rename: (file: TAbstractFile, newPath: string) => Promise<void>;
   /**
    * Modify the contents of a plaintext file.
    * @param file - The file
@@ -383,7 +463,7 @@ export interface Vault extends Events {
    * @param options - (Optional)
    * @public
    */
-  modify(file: TemplateFile, data: string, options?: DataWriteOptions): Promise<void>;
+  modify: (file: TFile, data: string, options?: DataWriteOptions) => Promise<void>;
   /**
    * Modify the contents of a binary file.
    * @param file - The file
@@ -391,7 +471,7 @@ export interface Vault extends Events {
    * @param options - (Optional)
    * @public
    */
-  modifyBinary(file: TemplateFile, data: ArrayBuffer, options?: DataWriteOptions): Promise<void>;
+  modifyBinary: (file: TFile, data: ArrayBuffer, options?: DataWriteOptions) => Promise<void>;
   /**
    * Add text to the end of a plaintext file inside the vault.
    * @param file - The file
@@ -399,7 +479,7 @@ export interface Vault extends Events {
    * @param options - (Optional)
    * @public
    */
-  append(file: TemplateFile, data: string, options?: DataWriteOptions): Promise<void>;
+  append: (file: TFile, data: string, options?: DataWriteOptions) => Promise<void>;
   /**
    * Atomically read, modify, and save the contents of a note.
    * @param file - the file to be read and modified.
@@ -408,60 +488,54 @@ export interface Vault extends Events {
    * @returns string - the text value of the note that was written.
    * @public
    */
-  process(file: TemplateFile, fn: (data: string) => string, options?: DataWriteOptions): Promise<string>;
+  process: (file: TFile, fn: (data: string) => string, options?: DataWriteOptions) => Promise<string>;
   /**
    * Create a copy of the selected file.
    * @param file - The file
    * @param newPath - Vault absolute path for the new copy.
    * @public
    */
-  copy(file: TemplateFile, newPath: string): Promise<TemplateFile>;
+  copy: (file: TFile, newPath: string) => Promise<TFile>;
   /**
    * Get all files and folders in the vault.
    * @public
    */
-  getAllLoadedFiles(): TAbstractFile[];
+  getAllLoadedFiles: () => TAbstractFile[];
 
-  /**
-   * @public
-   */
-  // static recurseChildren(root: TFolder, cb: (file: TAbstractFile) => any): void;
   /**
    * Get all markdown files in the vault.
    * @public
    */
-  getMarkdownFiles(): TemplateFile[];
+  getMarkdownFiles: () => TFile[];
   /**
    * Get all files in the vault.
    * @public
    */
-  getFiles(): TemplateFile[];
+  getFiles: () => TFile[];
 
   /**
-   * Called when a file is created.
-   * This is also called when the vault is first loaded for each existing file
-   * If you do not wish to receive create events on vault load, register your event handler inside {@link Workspace.onLayoutReady}.
-   * @public
+   * Called when a file is created, modified, deleted, or renamed.
+   * 
+   * **create:**
+   * - this is also called when the vault is first loaded for each existing file
+   * - if you do not wish to receive create events on vault load, register your event handler inside {@link Workspace.onLayoutReady}.
+   *
+   * **modify:**
+   * - called when a file is modified.
+   * **delete**:
+   * - called when a file is deleted.
+   * 
+   * **rename:**
+   * - called when a file is renamed; receives both new and old name
    */
-  on(name: 'create', callback: (file: TAbstractFile) => any, ctx?: any): EventRef;
-  /**
-   * Called when a file is modified.
-   * @public
-   */
-  on(name: 'modify', callback: (file: TAbstractFile) => any, ctx?: any): EventRef;
-  /**
-   * Called when a file is deleted.
-   * @public
-   */
-  on(name: 'delete', callback: (file: TAbstractFile) => any, ctx?: any): EventRef;
-  /**
-   * Called when a file is renamed.
-   * @public
-   */
-  on(name: 'rename', callback: (file: TAbstractFile, oldPath: string) => any, ctx?: any): EventRef;
+  on: <TEvent extends FileEvent>(
+      name: TEvent, 
+      callback: (file: TAbstractFile, oldPath: OnlyRenameEvent<TEvent>) => any, 
+      ctx?: any
+    ) => EventRef;
+
 
 }
-
 
 /**
  * This can be either a `TFile` or a `TFolder`.
@@ -503,3 +577,348 @@ export interface TFolder extends TAbstractFile {
 
 }
 
+export type Callback<
+  A extends readonly unknown[] = readonly unknown[], 
+  R extends unknown = unknown
+> = (...args: A) => R
+
+export interface ObAccount {
+  company: string;
+  email: string | null;
+  expiry: number;
+  key?: unknown;
+  keyValidation: string;
+  license: string | null;
+  name: string | null;
+  seats: number;
+  token: string | null;
+}
+
+export interface ObCommand {
+  checkCallback: Callback;
+  /** 
+   * typically a Lucide icon which might look like 
+   * "lucide-arrow-left" 
+   */
+  icon: string;
+  /** 
+   * a unique id for the command using format of
+   * `[PLUGIN]:[dasherized-name]`.
+   */
+  id: string;
+  /** human readable name for the command */
+  name: string;
+}
+
+export interface ObRibbonItem {
+  callback: Callback;
+  hidden: boolean;
+  icon: string;
+  id: string;
+  title: string;
+}
+
+export interface ObEditorCommand extends ObCommand {
+  editorCallback: Callback;
+}
+
+export interface ObUserMeta {
+  author: string;
+  authorUrl: Url;
+  dir: string;
+  minAppVersion: Semver;
+  name: string;
+  version: Semver;
+}
+
+export interface ObHotKey {
+  /**
+   * one or more modifiers comma-delimited
+   */
+  modifiers: string;
+  key: string;
+}
+
+export interface ObInternalPlugin {
+  addedButtonEls: HTMLElement[];
+  commands: Record<string, ObCommand>;
+  enabled: boolean;
+  hasStatusBarItem: boolean;
+  instance: Record<string, unknown>;
+  lastSave: number;
+  manager: unknown;
+  mobileFileInfo: unknown[];
+  onConfigFileChange: Callback;
+  ribbonItems: ObRibbonItem[];
+  statusBarEl: HTMLElement | null;
+  views: Record<string, unknown>;
+}
+
+export interface ObPlugin {
+  manifest?: ObUserMeta;
+  onConfigFileChange: Callback;
+  settings?: Record<string, unknown>
+  [key: string]: unknown;
+}
+
+export interface ObScope {
+    cb: Callback;
+    keys: unknown[];
+    parent?: ObScope;
+    tabFocusContainerEl: HTMLElement | null;
+}
+
+export interface ObMermaid {
+  contentLoaded: () => void;
+  detectType: Callback;
+  init: (i: unknown, a: unknown, f: unknown) => Promise<unknown>;
+  initialize: (i: unknown) => unknown;
+  mermaidAPI: {
+    defaultConfig: Record<string, unknown>;
+    getConfig: Callback;
+    getDiagramFromText: Callback;
+    getSiteConfig: Callback;
+    globalReset: ()=> unknown;
+    parse:  (i: unknown, a: unknown) => Promise<unknown>;
+    parseDirective: (i: unknown, a: unknown, f: unknown, p: unknown) => unknown;
+    render: (i: unknown, a: unknown, f: unknown) => unknown;
+    run:  (i: unknown) => Promise<unknown>;
+    setParseErrorHandler: Callback;
+    startOnLoad: boolean;
+  }
+}
+
+export interface ObLinkHover {
+  display: string;
+  defaultMod: boolean;
+}
+
+/**
+ * The App context object exposed by Obsidian as a global variable
+ */
+export interface ObsidianApp {
+  account: ObAccount;
+  appId: string;
+  appMenuBarManager: {
+    app: {
+      account: ObAccount;
+      appId: string;
+      // not sure if I should continue
+    };
+    requestRender: () => void;
+    requestUpdateViewStatus: () => void;
+  };
+  commands: Record<string, ObCommand>;
+  editorCommands: Record<string, ObEditorCommand>;
+  customCss: {
+    boundRaw: () => void;
+    cssCache: Map<string, string>;
+    enabledSnippets: Set<string>;
+    extraStyleEls: HTMLStyleElement[];
+    oldThemes: string[];
+    queue: Promise<any>;
+    requestLoadSnippets: () => void;
+    requestLoadTheme: () => void;
+    requestReadThemes: () => void;
+    snippets: string[];
+    styleEl: HTMLStyleElement;
+    theme: string;
+    themes: Record<string, ObUserMeta>;
+  }
+    dom: unknown;
+    dragManager: {
+      actionEl: HTMLBodyElement | null;
+      dragStart: unknown;
+      draggable: unknown;
+      ghostEl: HTMLElement | null;
+      hoverClass: string;
+      hoverEl: HTMLElement | null;
+      onTouchEnd: Callback;
+      overlayEl: HTMLElement | null;
+      shouldHideOverlay: boolean;
+      sourceClass: string;
+      sourceEls: HTMLElement[] | null;
+    };
+    embedRegistry: {
+      embedByExtension: {
+        "3gp": Callback;
+        bmp: Callback;
+        canvas: Callback;
+        flac: Callback;
+        gif: Callback;
+        jpeg: Callback;
+        jpg: Callback;
+        m4a: Callback;
+        md: Callback;
+        mkv: Callback;
+        mov: Callback;
+        mp3: Callback;
+        mp4: Callback;
+        oga: Callback;
+        ogg: Callback;
+        ogv: Callback;
+        opus: Callback;
+        pdf: Callback;
+        png: Callback;
+        svg: Callback;
+        wav: Callback;
+        webm: Callback;
+        webp: Callback;
+      }
+    };
+    fileManager: FileManager;
+    foldManager: unknown;
+    hotKeyManager: {
+      baked: boolean;
+      bakedHotkeys: ObHotKey[];
+      bakedIds: string[];
+      customKeys: Record<string, ObHotKey[]>;
+      defaultKeys: Record<string, ObHotKey[]>;
+    };
+    internalPLugins: {
+      config: Record<string, boolean>;
+      plugins: Record<string, ObInternalPlugin>;
+      requestSaveConfig: () => void;
+    };
+    isMobile: boolean;
+    keymap: {
+      modifiers: string;
+      prevScopes: unknown[];
+      rootScope: {
+        keys: unknown[];
+        parent?: unknown;
+        tabFocusContainerEl: HTMLElement | null;
+      };
+      scope: {
+        cb: Callback;
+        keys: unknown[];
+        parent: Record<string, unknown> | null;
+        tabFocusContainerEl: HTMLElement | null;
+      }
+    };
+    lastEvent: null | unknown;
+    loadProgress: {
+      doc: Document;
+      el: HTMLElement;
+      line1El: HTMLElement;
+      line2El: HTMLElement;
+      lineEl: HTMLElement;
+      messageEl: HTMLElement;
+      showTimeout: number;
+    };
+    metadataCache: {};
+    metadataTypeManager: {};
+    mobileNavbar: unknown | null;
+    mobileToolbar: unknown | null;
+    nextFrameEvents: unknown[];
+    nextFrameTimer: unknown | null;
+
+    plugins: {
+      enabledPlugins: Set<string>;
+      loadingPluginId: null | unknown;
+      manifests: Record<string, ObUserMeta>;
+      /**
+       * Dictionary of plugins where keys are the name of
+       * the plugin (using dasherized style of naming)
+       */
+      plugins: Record<string, ObPlugin>;
+
+      requestSaveConfig: () => void;
+      updates: Record<string, unknown>;
+    };
+    scope: ObScope;
+
+    setting: {
+      activeTab: unknown | null;
+      addSettingsTab: Callback;
+      bgEl: HTMLElement | null;
+      bgOpacity: `${number}`;
+      communityPluginTabContainer: HTMLElement | null;
+      communityPluginTabHeaderGroup: HTMLElement | null;
+      containerEl: HTMLElement | null;
+      corePluginTabContainer: HTMLElement | null;
+      corePluginTabHeaderGroup: HTMLElement | null;
+      dimBackground: boolean;
+      lastTabId: string;
+      modalEl: HTMLElement | null;
+      onClose: Callback;
+      onOpen: Callback;
+      onWindowClose: Callback;
+      openTab: Callback;
+      openTabById: Callback;
+      pluginTabs: unknown[];
+      removeSettingTab: Callback;
+      scope: ObScope;
+      selection: {
+        focusEl: HTMLElement | null;
+        range: {
+          collapsed: boolean;
+          commonAncestorContainer: HTMLElement | null;
+          endContainer: HTMLElement | null;
+          endOffset: number;
+          startContainer: HTMLElement | null;
+          startOffset: number;
+        };
+        /** Global objects on window */
+        win: {
+          DataviewAPI?: DataviewApi;
+          mermaid?: ObMermaid;
+          customElements: CustomElementRegistry;
+
+          activeDocument: Document;
+          createSvg: (t: unknown, e: unknown, n: unknown) => unknown;
+          createDiv: Callback;
+          createSpan: Callback;
+          createImageBitmap: Callback;
+          matchMedia: Callback;
+
+          [key: string]: unknown;
+        }
+      }
+
+    };
+    shareReceiver: unknown;
+    statusBar: unknown;
+    /** Obsidian title string with version */
+    title: string;
+    vault: Vault;
+    viewRegistry: {
+      typeByExtension: Record<string,string>;
+      viewByType: Record<string, <T>() => T>;
+    }
+    workspace: {
+      activeEditor: unknown;
+      activeLeaf: unknown;
+      activeTabGroup: unknown;
+      containerEl: HTMLElement;
+      editorExtensions: unknown[];
+      editorSuggest: unknown;
+      floatingSplit: unknown;
+      hoverLinkResources: {
+        bookmarks: ObLinkHover;
+        editor: ObLinkHover;
+        "file-explorer": ObLinkHover;
+        graph: ObLinkHover;
+        preview: ObLinkHover;
+        search: ObLinkHover;
+      }
+      lastActiveFile: TFile;
+      lastTabGroupStacked: boolean;
+      layoutReady: boolean;
+      leftRibbon: unknown;
+      leftSidebarToggleButtonEl: HTMLElement;
+      leftSplit: unknown;
+      mobileFileInfos: unknown[];
+      onLayoutReadyCallbacks: unknown | null;
+      protocolHandlers: Map<string, Callback>;
+      recentFileTracker: unknown;
+      requestActiveLeafEvents: () => unknown;
+      requestResize: () => unknown;
+      requestSaveLayout: () => unknown;
+      requestUpdateLayout: () => unknown;
+      rightRibbon: unknown;
+      rightSidebarToggleButtonEl: HTMLElement;
+      rootSplit: unknown;
+      scope: ObScope;
+    }
+}

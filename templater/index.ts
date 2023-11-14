@@ -4,3 +4,6 @@ export * from "./utils";
 export * from "./Mutable";
 export * from "./TupleToUnion";
 export * from "./Dataview";
+export * from "./other-types";
+export * from "./obsidian-types";
+export * from "./queries";
